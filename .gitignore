@@ -1,0 +1,16 @@
+# Vivado build artifacts
+tcl/project_from_scratch/
+tcl/vivado.log
+tcl/vivado.jou
+tcl/webtalk*
+tcl/usage_statistics_webtalk*
+tcl/.Xil/
+tcl/*.log
+tcl/*.jou
+tcl/*.str
+.Xil/
+*.log
+*.jou
+*.str
+*.backup.jou
+*.backup.log
