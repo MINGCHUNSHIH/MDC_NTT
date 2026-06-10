@@ -1,6 +1,6 @@
-# Crystals-Dilithium MDC-NTT 多項式相乘硬體加速器釋出套件 (MDC-NTT Accelerator Release)
+# Crystals-Dilithium MDC-NTT 多項式相乘硬體加速器 IP 倉庫 (MDC-NTT Accelerator IP Repository)
 
-本專案為針對 NIST 後量子密碼學（PQC）標準數位簽章演算法 **Crystals-Dilithium** 之多項式相乘硬體加速器。項目完整實現了 8 級雙通道 MDC-NTT/INTT 流水線，並在 **Xilinx Zynq-7000 SoC (ZedBoard) 開發板**上完成實體晶片驗證，中間級數值與最終時域乘積與理論數學模型達到 **100% 位元級精確吻合**。
+本專案為針對 NIST 後量子密碼學（PQC）標準數位簽章演算法 **Crystals-Dilithium** 之多項式相乘硬體加速器 IP 倉庫。項目完整實現了 8 級雙通道 MDC-NTT/INTT 流水線，並在 **Xilinx Zynq-7000 SoC (ZedBoard) 開發板**上完成實體晶片驗證，中間級數值與最終時域乘積與理論數學模型達到 **100% 位元級精確吻合**。
 
 ---
 
@@ -13,7 +13,8 @@
 │   ├── component.xml                                 # Vivado IP 描述檔 (topsoft_v1_0)
 │   ├── xgui/                                         # IP 的自定義 GUI 檔案
 │   └── src/                                          # 自定義 AXI-Stream 加速核心 Verilog 程式碼
-│       ├── topsoft.v                                 # 頂層 AXI-Stream 包裝 IP 模組 (FSM + LUTRAM)
+│       ├── poly_multiplier_top.v                     # 支援 RTL 前仿真 (Pre-simulation) 的頂層測試核心
+│       ├── topsoft.v                                 # 適用於 SoC Block Design 的頂層 AXI-Stream 包裝 IP 模組
 │       ├── ntt_core.v                                # 前向 NTT 計算引擎
 │       ├── intt_core.v                               # 逆向 INTT 計算引擎 (含 N^-1 縮放)
 │       ├── pwm_core.v                                # 頻域點對點相乘核心
@@ -21,60 +22,31 @@
 │       ├── butterfly_unit.v                          # Gentleman-Sande (DIF) 蝶形運算單元
 │       ├── c2_commutator.v                           # MDC 流水線交換路由器
 │       ├── delay_unit.v                              # 移位延遲暫存組
-│       └── *.mem / *.sv                              # 模擬記憶體初始化檔案與測試平台
-├── src/
-│   └── main.c                                        # Zynq ARM PS 端 C 語言驅動與系統驗證程式
-├── tcl/
-│   ├── rebuild_project_from_scratch.tcl              # 從零重建 Vivado 專案與編譯 Bitstream 的主腳本
-│   ├── design_1.tcl                                  # Block Design 連線腳本 (自動拉線)
-│   ├── rebuild.tcl                                   # 同步最新程式碼並重編譯現有專案的腳本
-│   └── run_program.tcl                               # XSCT 自動化燒錄、下載與板端執行腳本
-└── .gitignore                                        # 排除 Vivado 編譯與日誌快取檔案
+│       └── *.mem / *.sv                              # 仿真記憶體初始化檔案與前仿真 Testbench (tb_poly_multiplier_top.sv)
+└── src/
+    └── main.c                                        # Zynq ARM PS 端 C 語言驅動與系統驗證程式
 ```
 
 ---
 
 ## 🛠️ 開發環境需求 (Requirements)
 * **Xilinx Vivado Design Suite 2019.1** (或相容版本)
-* **Xilinx SDK / XSCT 2019.1**
 * **硬體平台**: Avnet ZedBoard (xc7z020clg484-1)
 
 ---
 
-## 🚀 一鍵重建專案與編譯 (Rebuild from Scratch)
+## 💻 RTL 前仿真驗證 (Pre-simulation)
 
-本專案提供全自動化的重建腳本，能在不遺失任何 IP 配置與連線的前提下，直接從零重現完整的 Block Design 設計：
+本專案提供了完整的行為級前仿真平台，可用於驗證 Verilog RTL 的數學正確性：
 
-1. 開啟 Vivado Tcl Shell（或在 Windows CMD 中定位至 `tcl/` 目錄）。
-2. 執行以下命令啟動專案一鍵重建：
-   ```bash
-   vivado -mode batch -source rebuild_project_from_scratch.tcl
-   ```
-   **腳本將自動執行**：
-   * 建立全新 Vivado 專案（目標開發板為 ZedBoard）。
-   * 將本地 `rtl/` 資料夾註冊為 IP 倉庫，載入 `topsoft_v1_0` 加速器 IP。
-   * 執行 `design_1.tcl` 自動生成 Zynq PS、AXI DMA、GPIO、AXI SmartConnect 的 Block Design，並**自動完成全部內部連線**。
-   * 自動產生頂層 HDL Wrapper。
-   * 啟動綜合與實作（Synthesis & Implementation），自動生成用於實體板端燒錄的二進制位元流檔案 **`design_1_wrapper.bit`**。
-
----
-
-## 🎯 實體板端自動化燒錄與執行 (XSCT Execution)
-
-當 Vivado 成功生成 Bitstream 且您已將 ZedBoard 連接至本機後，您可以使用 XSCT 腳本進行一鍵自動化燒錄與執行：
-
-1. 開啟 Xilinx Software Command-line Tool (XSCT) 終端機。
-2. 切換至 `tcl/` 目錄，執行：
-   ```bash
-   xsct run_program.tcl
-   ```
-   **腳本將自動執行**：
-   * 指定與更新 SDK 工作區與硬體平台規格檔 (`.hdf`)。
-   * 自動編譯 C 驅動程式專案 (`main.c`) 與 BSP 檔。
-   * 通過 JTAG 對 ZedBoard 進行系統重置與 PL 端 Bitstream 燒錄。
-   * 載入處理器系統配置 (`ps7_init.tcl`)。
-   * 將編譯完成的 ELF 載入至 ARM 處理器 Cortex-A9 Core 0 並啟動運行。
-3. 您可以開啟任何 Serial Terminal（如 PuTTY, Xshell），連接至 ZedBoard 對應的 COM 埠（Baud Rate: `115200`），即可看到如下的硬體加速全流程（NTT A $\rightarrow$ NTT B $\rightarrow$ PWM $\rightarrow$ INTT C）逐點比對與 100% 成功吻合的實測日誌！
+1. 在 Vivado 中開啟或新增一個模擬專案，並將 `rtl/src/` 下的所有 `.v`、`.sv` 與 `.mem` 檔案加入專案。
+2. 將 `tb_poly_multiplier_top.sv` 設定為模擬頂層 (Simulation Top)。
+3. 執行前仿真 (Behavioral Simulation)，模擬會自動讀取 `.mem` 測資並逐一驗證以下四個關鍵階段的數值：
+   * **Check Point 1**: NTT(A) 係數比對
+   * **Check Point 2**: NTT(B) 係數比對
+   * **Check Point 3**: PWM (點對點相乘) 比對
+   * **Check Point 4**: INTT(C) 最終時域係數比對
+   若所有階段計算皆與理論黃金參考一致，模擬控制台會印出 `>> INTT_C PASS! 全線通關！` 並結束。
 
 ---
 

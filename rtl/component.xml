@@ -426,7 +426,7 @@
         <spirit:userFileType>CHECKSUM_0d3cfb42</spirit:userFileType>
         <spirit:userFileType>IMPORTED_FILE</spirit:userFileType>
       </spirit:file>
-      </spirit:fileSet>
+      <spirit:file><spirit:name>src/poly_multiplier_top.v</spirit:name><spirit:fileType>verilogSource</spirit:fileType><spirit:userFileType>IMPORTED_FILE</spirit:userFileType></spirit:file></spirit:fileSet>
     <spirit:fileSet>
       <spirit:name>xilinx_anylanguagebehavioralsimulation_view_fileset</spirit:name>
             <spirit:file>
@@ -479,7 +479,7 @@
         <spirit:fileType>verilogSource</spirit:fileType>
         <spirit:userFileType>IMPORTED_FILE</spirit:userFileType>
       </spirit:file>
-    </spirit:fileSet>
+    <spirit:file><spirit:name>src/poly_multiplier_top.v</spirit:name><spirit:fileType>verilogSource</spirit:fileType><spirit:userFileType>IMPORTED_FILE</spirit:userFileType></spirit:file></spirit:fileSet>
     <spirit:fileSet>
       <spirit:name>xilinx_testbench_view_fileset</spirit:name>
       <spirit:file>
